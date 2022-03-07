@@ -1,65 +1,51 @@
-const video = document.getElementById('video');
-const play = document.getElementById('play');
-const stop = document.getElementById('stop');
-const progress = document.getElementById('progress');
-const timestamp = document.getElementById('timestamp');
+'use strict';
 
-// Play & pause video
-function toggleVideoStatus() {
-  if (video.paused) {
-    video.play();
-  } else {
-    video.pause();
+const allCtrls = document.querySelector('.controls');
+const allBtns = document.querySelectorAll('.btn');
+const playBtn = document.getElementById('play');
+const stopBtn = document.getElementById('stop');
+const videoPlayer = document.getElementById('video');
+
+allCtrls.addEventListener('click', function (e) {
+  e.preventDefault();
+
+  console.log(e.target);
+  handleButtons(this, e.target);
+});
+
+// allBtns.forEach(function (btn) {
+//   btn.addEventListener('click', function (e) {
+//     e.preventDefault();
+//     handleButtons(e.target);
+//   });
+// });
+
+// playBtn.addEventListener('click', function (e) {
+//   e.preventDefault();
+//   //console.log(e.target);
+
+//   handleButtons(e.target);
+// });
+
+// stopBtn.addEventListener('click', function (e) {
+//   handleButtons(e.target);
+// });
+
+function handleButtons(container, btn) {
+  if (btn.classList.contains('fa-play')) {
+    btn.classList.remove('fa-play');
+    btn.classList.add('fa-pause');
+    videoPlayer.play();
+  } else if (btn.classList.contains('fa-pause')) {
+    btn.classList.add('fa-play');
+    btn.classList.remove('fa-pause');
+    videoPlayer.pause();
+  } else if (btn.classList.contains('fa-stop')) {
+    container.querySelector('#play > i').classList.add('fa-play');
+    container.querySelector('#play > i').classList.remove('fa-pause');
+    videoPlayer.pause();
+    videoPlayer.currentTime = 0;
+  } else if (btn.classList.contains('progress')) {
+    console.log('progress');
   }
 }
-
-// update play/pause icon
-function updatePlayIcon() {
-  if (video.paused) {
-    play.innerHTML = '<i class="fa fa-play fa-2x"></i>';
-  } else {
-    play.innerHTML = '<i class="fa fa-pause fa-2x"></i>';
-  }
-}
-
-// Update progress & timestamp
-function updateProgress() {
-  progress.value = (video.currentTime / video.duration) * 100;
-
-  // Get the minutes
-  let mins = Math.floor(video.currentTime / 60);
-  if(mins < video.duration){
-    mins = '0' + String(mins);
-  }
-
-  // Get Seconds
-  let secs = Math.floor(video.currentTime % 60);
-  if(secs < video.duration){
-    secs = '0' + String(secs);
-  }
-
-  timestamp.innerHTML = `${mins}:${secs}`;
-}
-
-// Set video time to progress
-function setVideoProgress() {
-  video.currentTime = (+progress.value * video.duration) / 100;
-}
-
-// Stop video
-function stopVideo() {
-  video.currentTime = 0;
-  video.pause();
-}
-
-// Event listeners
-video.addEventListener('click', toggleVideoStatus);
-video.addEventListener('pause', updatePlayIcon);
-video.addEventListener('play', updatePlayIcon);
-video.addEventListener('timeupdate', updateProgress);
-
-play.addEventListener('click', toggleVideoStatus);
-
-stop.addEventListener('click', stopVideo);
-
-progress.addEventListener('change', setVideoProgress);

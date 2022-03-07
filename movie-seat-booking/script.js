@@ -17,7 +17,7 @@ movieSelector.addEventListener('change', function () {
   calculateTotalPrice();
 });
 
-allSeats.addEventListener('click', function (e) {
+allSeats.addEventListener('click', (e) => {
   const selectedSeat = e.target;
 
   if (!selectedSeat.classList.contains('seat')) return;
