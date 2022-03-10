@@ -25,6 +25,20 @@ videoPlayer.addEventListener('click', function (e) {
   videoPlayer.play();
 });
 
+videoPlayer.addEventListener('timeupdate', function (e) {
+  timeStmp.innerHTML = minTommss(video.currentTime);
+  slider.value = video.currentTime;
+});
+
+slider.addEventListener('click', function (e) {
+  e.preventDefault();
+  //debugger;
+  clearInterval(interval);
+  //interval = e.target.value;
+  startInterval();
+  timeStmp.innerHTML = minTommss(e.target.value);
+});
+
 function minTommss(minutes) {
   var sign = minutes < 0 ? '-' : '';
 
@@ -37,11 +51,11 @@ function minTommss(minutes) {
 
 function startInterval() {
   slider.max = video.duration;
-  interval = setInterval(() => {
-    timeStmp.innerHTML = minTommss(video.currentTime);
-    slider.value = video.currentTime;
-    if (slider.value == video.duration) console.log('finnn');
-  }, 10);
+  console.log(video.currentTime);
+  // interval = setInterval(() => {
+  //   timeStmp.innerHTML = minTommss(video.currentTime);
+  //   slider.value = video.currentTime;
+  // }, 10);
 }
 
 function stopInvertal(interval) {
@@ -51,7 +65,8 @@ function stopInvertal(interval) {
 function pauseInvertal(time) {
   console.log(interval);
   clearInterval(interval);
-  interval = time;
+  interval = parseInt(time);
+  console.log(interval);
 }
 
 function handleButtons(container, btn) {
@@ -74,12 +89,11 @@ function handleButtons(container, btn) {
     videoPlayer.currentTime = 0;
     slider.value = 0;
   } else if (btn.classList.contains('progress')) {
-    pauseInvertal(videoPlayer.currentTime);
-
-    console.log(btn);
-    console.log(btn.value);
+    //pauseInvertal(videoPlayer.currentTime);
+    // console.log(btn);
+    // console.log(btn.value);
     //video.currentTime = btn.value;
-    timeStmp.innerHTML = minTommss(video.currentTime);
+    //timeStmp.innerHTML = minTommss(video.currentTime);
     //startInterval();
   }
 }

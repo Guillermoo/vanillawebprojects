@@ -1,36 +1,81 @@
-const currencyEl_one = document.getElementById('currency-one');
-const amountEl_one = document.getElementById('amount-one');
-const currencyEl_two = document.getElementById('currency-two');
-const amountEl_two = document.getElementById('amount-two');
-const rateEl = document.getElementById('rate');
-const swap = document.getElementById('swap');
+const API_KEY = 'd96b88a98cf1d45d463be3ca';
+const selCurrencyOne = document.getElementById('currency-one');
+const amountOne = document.getElementById('amount-one');
+const selCurrencyTwo = document.getElementById('currency-two');
+const amountTwo = document.getElementById('amount-two');
+const btnSwap = document.getElementById('swap');
+const displayRate = document.getElementById('rate');
 
-function calculate() {
-  const currency_one = currencyEl_one.value;
-  const currency_two = currencyEl_two.value;
-  fetch("https://open.exchangerate-api.com/v6/latest")
-    .then(res => res.json())
-    .then(data => {
-      //  console.log(data);
-      const rate = data.rates[currency_two] / data.rates[currency_one];
-      rateEl.innerText = `1 ${currency_one} = ${rate} ${currency_two}`;
-      amountEl_two.value = (amountEl_one.value * (rate)).toFixed(2);
-    });
-}
+amountOne.addEventListener('change', function (e) {
+  const currency = selCurrencyOne.value;
+  const currencyTo = selCurrencyTwo.value;
 
-
-// Event Listener
-currencyEl_one.addEventListener('change', calculate);
-amountEl_one.addEventListener('input', calculate);
-currencyEl_two.addEventListener('change', calculate);
-amountEl_two.addEventListener('input', calculate);
-
-swap.addEventListener('click', () => {
-  const temp = currencyEl_one.value;
-  currencyEl_one.value = currencyEl_two.value;
-  currencyEl_two.value = temp;
-  calculate();
+  if (!currency) return;
+  getCurrencyFromDataAPI(currency, currencyTo);
 });
 
+btnSwap.addEventListener('click', function () {
+  const one = selCurrencyOne.value;
+  const two = selCurrencyTwo.value;
 
-calculate();
+  selCurrencyOne.value = two;
+  selCurrencyTwo.value = one;
+
+  getCurrencyFromDataAPI(selCurrencyOne.value, selCurrencyTwo.value);
+});
+
+selCurrencyOne.addEventListener('change', function (e) {
+  const currency = e.target.value;
+  const currencyTo = selCurrencyTwo.value;
+
+  if (!currency) return;
+
+  getCurrencyFromDataAPI(currency, currencyTo);
+});
+
+selCurrencyTwo.addEventListener('change', function (e) {
+  const currency = selCurrencyOne.value;
+  const currencyTo = e.target.value;
+
+  if (!currency) return;
+
+  getCurrencyFromDataAPI(currency, currencyTo);
+});
+
+function showConversion(amount, convertedamount, curr1, curr2) {
+  displayRate.innerHTML = `${amount} ${curr1} = ${
+    convertedamount * amount
+  } ${curr2}`;
+  amountTwo.value = convertedamount * amount;
+}
+
+const getDataAPI = async function (currency) {
+  try {
+    const repUrl = `https://v6.exchangerate-api.com/v6/${API_KEY}/latest/${currency}`;
+    return await new Promise((resolve, reject) => {
+      fetch(repUrl)
+        .then((response) => {
+          resolve(response.json());
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+function getCurrencyFromDataAPI(currency, currencyTo) {
+  const data = getDataAPI(currency);
+  data.then((result) => {
+    showConversion(
+      amountOne.value,
+      result['conversion_rates'][currencyTo],
+      currency,
+      currencyTo
+    );
+  });
+}
+
+getCurrencyFromDataAPI(selCurrencyOne.value, selCurrencyTwo.value);
