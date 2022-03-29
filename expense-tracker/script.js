@@ -3,37 +3,52 @@ const form = document.querySelector('#form');
 const txtValue = document.querySelector('#text');
 const amountValue = document.querySelector('#amount');
 
+const balanceEl = document.getElementById('balance');
+const incomeEl = document.getElementById('money-plus');
+const expenseEl = document.getElementById('money-minus');
+
 let transactions = [];
 
 document.addEventListener('click', manageDelete);
 
 form.addEventListener('submit', manageForm);
 
+/**
+ *
+ * Only if it's delete btn trigger to remove the transaction
+ *
+ * @param {Element} e
+ */
 function manageDelete(e) {
-  //   console.log(e);
-  //   console.log(e.target);
   if (e.target.classList.contains('delete-btn')) {
     const btnDelete = e.target;
     const id = btnDelete.parentNode.id;
     deleteTransaction(id, transactions);
     deleteEl(id);
-    console.log(transactions);
-    setLocalStorage(localStorage);
+    setLocalStorage(transactions);
+    updateBalance();
   }
 }
 
+/**
+ * remove li element from list
+ *
+ * @param {number} id
+ */
 function deleteEl(id) {
   const transEl = document.getElementById(id);
-  console.log(transEl);
-  console.log(listExpensesEl);
 
   listExpensesEl.removeChild(transEl);
 }
 
+/**
+ *
+ * remove transaction from array of transactions
+ * @param {number} id
+ * @param {object} trans
+ */
 function deleteTransaction(id, trans) {
   trans.find((t, i) => (t.id === id ? trans.splice(i, 1) : ''));
-  //delete trans[transToDelete];
-  //console.log(trans);
 }
 
 function manageForm(e) {
@@ -45,16 +60,25 @@ function manageForm(e) {
   }
 
   addExpense(txtValue.value, amountValue.value);
+  updateDOM(transactions);
+  updateBalance();
 }
 
 function init() {
   transactions = getLocalStorage();
-  console.log(transactions);
-  showData(transactions);
+  if (!Array.isArray(transactions)) return;
 
+  updateDOM(transactions);
+  updateBalance();
   // transactions.
 }
 
+/**
+ *
+ * Create a new expense and store on localstorage
+ * @param {string} txt
+ * @param {integer} amount
+ */
 function addExpense(txt, amount) {
   console.log(txt, amount);
 
@@ -64,19 +88,20 @@ function addExpense(txt, amount) {
     amount: +amount,
   };
 
-  console.log(newTransaction);
-  console.log(transactions);
+  //No transactions added yet
   transactions === null
     ? (transactions = [newTransaction])
     : transactions.push(newTransaction);
 
   setLocalStorage(transactions);
-  updateDOM(newTransaction);
 }
 
+/**
+ * Get a transaction and create an li element to insert it into list element
+ * @param {*} trans
+ */
 function createHTML(trans) {
   let type = '';
-  let sign = '';
   if (trans.amount > 0) {
     type = 'plus';
     sign = '+';
@@ -89,22 +114,43 @@ function createHTML(trans) {
   }<span>${parseInt(
     trans.amount
   )}</span><button class="delete-btn">x</button></li>`;
-
-  return markUpTrans;
+  listExpensesEl.insertAdjacentHTML('beforeend', markUpTrans);
 }
 
+/**
+ * update list of transactions
+ *
+ * @param {Array transactions} trans
+ * @returns
+ */
 function updateDOM(trans) {
-  const transEl = createHTML(trans);
-  listExpensesEl.insertAdjacentHTML('beforeend', transEl);
+  if (trans.length === 0) return;
+  listExpensesEl.innerHTML = '';
+  trans.map((t) => createHTML(t));
+
   txtValue.value = '';
   amountValue.value = '';
 }
 
-function showData(trans) {
-  if (!trans) return;
-  console.log(trans);
-  const htmlTrans = trans.map((t) => createHTML(t));
-  listExpensesEl.innerHTML = [...htmlTrans].join('');
+/**
+ *
+ */
+function updateBalance() {
+  const amounts = transactions.map((trans) => {
+    return trans['amount'];
+  });
+
+  const income = amounts.reduce((acc, next) => {
+    return next > 0 ? acc + next : acc;
+  }, 0);
+
+  const expense = amounts.reduce((acc, next) => {
+    return next < 0 ? acc + next : acc;
+  }, 0);
+
+  incomeEl.innerHTML = `+$${income}`;
+  expenseEl.innerHTML = `-$${Math.abs(expense)}`;
+  balanceEl.innerHTML = `$${income + expense}`;
 }
 
 function getRandomId() {
@@ -113,36 +159,20 @@ function getRandomId() {
     .substring(1);
 }
 
-// Get data from localstorage
-// function loadData() {
-//   const transaction = {
-//     id: getRandomId(),
-//     name: 'trans1',
-//     amount: 23,
-//   };
-//   const transaction2 = {
-//     id: getRandomId(),
-//     name: 'trans2',
-//     amount: -43,
-//   };
-//   transactions.push(transaction);
-//   transactions.push(transaction2);
-
-//   // return localStorage.getItem('transactions');
-//   return transactions;
-// }
-
+/**
+ *
+ * @returns  JSON.parse(trans);
+ */
 function getLocalStorage() {
   const trans = localStorage.getItem('transactions');
-  console.log(trans);
   return JSON.parse(trans);
 }
 
-function setLocalStorage(trans) {
+function setLocalStorage(trans = transactions) {
   if (!trans) return;
-
-  console.log(trans);
+  //console.log(trans['transactions']);
   localStorage.setItem('transactions', JSON.stringify(trans));
 }
 
 init();
+//localStorage.clear();
