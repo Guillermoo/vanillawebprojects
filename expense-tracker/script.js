@@ -8,6 +8,8 @@ const incomeEl = document.getElementById('money-plus');
 const expenseEl = document.getElementById('money-minus');
 
 let transactions = [];
+// let transactions =
+//   localStorage.getItem('transactions') !== null ? localStorageTransactions : [];
 
 document.addEventListener('click', manageDelete);
 
@@ -48,6 +50,9 @@ function deleteEl(id) {
  * @param {object} trans
  */
 function deleteTransaction(id, trans) {
+  //Otra muy buena solucion
+  //transactions = transactions.filter(transaction => transaction.id !== id);
+
   trans.find((t, i) => (t.id === id ? trans.splice(i, 1) : ''));
 }
 
@@ -62,6 +67,7 @@ function manageForm(e) {
   addExpense(txtValue.value, amountValue.value);
   updateDOM(transactions);
   updateBalance();
+  setLocalStorage(transactions);
 }
 
 function init() {
@@ -75,13 +81,11 @@ function init() {
 
 /**
  *
- * Create a new expense and store on localstorage
+ * Create a new expense
  * @param {string} txt
  * @param {integer} amount
  */
 function addExpense(txt, amount) {
-  console.log(txt, amount);
-
   const newTransaction = {
     id: getRandomId(),
     name: txt,
@@ -92,8 +96,6 @@ function addExpense(txt, amount) {
   transactions === null
     ? (transactions = [newTransaction])
     : transactions.push(newTransaction);
-
-  setLocalStorage(transactions);
 }
 
 /**
@@ -101,19 +103,12 @@ function addExpense(txt, amount) {
  * @param {*} trans
  */
 function createHTML(trans) {
-  let type = '';
-  if (trans.amount > 0) {
-    type = 'plus';
-    sign = '+';
-  } else {
-    type = 'minus';
-    sign = '-';
-  }
-  const markUpTrans = `<li id=${trans.id} class="${type}">${
-    trans.name
-  }<span>${parseInt(
+  const markUpTrans = `<li id=${trans.id} class="${
+    trans.amount > 0 ? 'plus' : 'minus'
+  }">${trans.name}<span>${parseInt(
     trans.amount
   )}</span><button class="delete-btn">x</button></li>`;
+
   listExpensesEl.insertAdjacentHTML('beforeend', markUpTrans);
 }
 
