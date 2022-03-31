@@ -4,6 +4,7 @@ const audioPlayer = document.getElementById('audio');
 const prevBtn = document.getElementById('prev');
 const playBtn = document.getElementById('play');
 const nextBtn = document.getElementById('next');
+const coverEl = document.getElementById('cover');
 const musicContainer = document.querySelector('.music-container');
 const progressEl = document.getElementById('progress');
 const progressCont = document.getElementById('progress-container');
@@ -16,31 +17,30 @@ playBtn.addEventListener('click', managePlay);
 nextBtn.addEventListener('click', manageSwitch);
 prevBtn.addEventListener('click', manageSwitch);
 
-audioPlayer.addEventListener('timeupdate', manageSlider, false);
-progressCont.addEventListener('click', clickSlider, false);
+audioPlayer.addEventListener('timeupdate', setWidth);
+progressCont.addEventListener('click', clickSlider);
 
 // Gets audio file duration
 audioPlayer.addEventListener(
   'canplaythrough',
   function () {
     progressEl.max = audioPlayer.duration;
+    console.log(progressEl.max);
   },
   false
 );
 
 function clickSlider(e) {
-  console.log(e);
-  console.log(e.clientWidth);
-  console.log(this.clientWidth);
-  console.log(progressEl.value);
-
-  //console.log(progressEl.style.width);
-  //console.log(progressEl.style.width.replace('px', ''));
-  // audioPlayer.currentTime = progressEl.style.width.replace('px', '');
+  const width = this.clientWidth;
+  const clickX = e.offsetX;
+  const duration = audioPlayer.duration;
+  audioPlayer.currentTime = (clickX / width) * duration;
 }
 
-function manageSlider() {
-  progressEl.style.width = `${audioPlayer.currentTime}px`;
+function setWidth(e) {
+  const { duration, currentTime } = e.srcElement;
+  const progressPercent = (currentTime / duration) * 100;
+  progressEl.style.width = `${progressPercent}%`;
 }
 
 function managePlay() {
@@ -73,7 +73,7 @@ function playSong(iconBtn) {
   iconBtn.classList.add('fa-pause');
 
   showSong(audioPlayer.src);
-  manageSlider();
+  setWidth();
 }
 
 function showSong(audioSrc) {
@@ -81,7 +81,7 @@ function showSong(audioSrc) {
 
   //last element from array
   let nameSong = audioSrc.split('/').reverse()[0].replace('.mp3', '');
-
+  cover.src = `images/${nameSong}.jpg`;
   titleEl.innerHTML = nameSong;
 }
 
