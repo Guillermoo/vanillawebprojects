@@ -1,80 +1,109 @@
-const postsContainer = document.getElementById('posts-container');
-const loading = document.querySelector('.loader');
-const filter = document.getElementById('filter');
+const postContainer = document.getElementById('posts-container');
+const searchEl = document.getElementById('filter');
+const loaderEl = document.querySelector('.loader');
 
-let limit = 5;
-let page = 1;
+let posts = [];
+let lastPostIndex = 0;
+NUMBER_POSTS = 5;
 
-// Fetch posts from API
-async function getPosts() {
-  const res = await fetch(
-    `https://jsonplaceholder.typicode.com/posts?_limit=${limit}&_page=${page}`
-  );
+/** getPosts when rich bottom page */
+window.addEventListener('scroll', (e) => {
+  // handle the scroll event
+  Math.round(document.body.offsetHeight) ===
+  Math.round(window.innerHeight + window.pageYOffset)
+    ? getPosts()
+    : '';
 
-  const data = await res.json();
+  /** Manera pro */
+  // const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
 
-  return data;
-}
-
-// Show posts in DOM
-async function showPosts() {
-  const posts = await getPosts();
-
-  posts.forEach(post => {
-    const postEl = document.createElement('div');
-    postEl.classList.add('post');
-    postEl.innerHTML = `
-      <div class="number">${post.id}</div>
-      <div class="post-info">
-        <h2 class="post-title">${post.title}</h2>
-        <p class="post-body">${post.body}</p>
-      </div>
-    `;
-
-    postsContainer.appendChild(postEl);
-  });
-}
-
-// Show loader & fetch more posts
-function showLoading() {
-  loading.classList.add('show');
-
-  setTimeout(() => {
-    loading.classList.remove('show');
-
-    setTimeout(() => {
-      page++;
-      showPosts();
-    }, 300);
-  }, 1000);
-}
-
-// Filter posts by input
-function filterPosts(e) {
-  const term = e.target.value.toUpperCase();
-  const posts = document.querySelectorAll('.post');
-
-  posts.forEach(post => {
-    const title = post.querySelector('.post-title').innerText.toUpperCase();
-    const body = post.querySelector('.post-body').innerText.toUpperCase();
-
-    if (title.indexOf(term) > -1 || body.indexOf(term) > -1) {
-      post.style.display = 'flex';
-    } else {
-      post.style.display = 'none';
-    }
-  });
-}
-
-// Show initial posts
-showPosts();
-
-window.addEventListener('scroll', () => {
-  const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-
-  if (scrollHeight - scrollTop === clientHeight) {
-    showLoading();
-  }
+  // if (scrollHeight - scrollTop === clientHeight) {
+  //   showLoading();
+  // }
 });
 
-filter.addEventListener('input', filterPosts);
+searchEl.addEventListener('keypress', searchPost);
+
+/**
+ *
+ * Filter posts Array with search field string
+ */
+function searchPost() {
+  if (posts.length === 0) return;
+
+  const postSearch = posts.filter((post) => {
+    return post.title.includes(searchEl.value) ? post : '';
+  });
+  postContainer.innerHTML = '';
+  printPosts(postSearch);
+  lastPostIndex = lastPostIndex + NUMBER_POSTS;
+}
+
+const getDataAPI = async function () {
+  try {
+    const repUrl = `https://jsonplaceholder.typicode.com/posts`;
+    return await new Promise((resolve, reject) => {
+      fetch(repUrl)
+        .then((response) => resolve(response.json()))
+        .catch((error) => reject(error));
+    });
+
+    /** otra formaa */
+    // const res = await fetch(
+    //   `https://jsonplaceholder.typicode.com/posts?_limit=${limit}&_page=${page}`
+    // );
+
+    // const data = await res.json();
+
+    // return data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+function printPosts(postsToShow) {
+  // Hide loader Spin
+  loaderEl.classList.remove('show');
+
+  postsToShow.map((post) => {
+    const { id, title, body } = post;
+    const markUpPost = `
+    <div class="post">
+        <div class="number">${id}</div>
+        <div class="post-info">
+            <h2 class="post-title">${title}</h2>
+            <p class="post-body">${body}</p>
+        </div>
+    </div>
+    `;
+
+    postContainer.insertAdjacentHTML('beforeend', markUpPost);
+  });
+}
+
+function getPosts() {
+  //- Fetch initial posts from API and display
+  postsFech = getDataAPI();
+
+  // Show loader Spin
+  loaderEl.classList.add('show');
+
+  postsFech.then((post) => {
+    //set global variable all posts
+    posts = post;
+    setTimeout(function () {
+      const postsToShow = posts.slice(
+        lastPostIndex,
+        NUMBER_POSTS + lastPostIndex
+      );
+      printPosts(postsToShow);
+      lastPostIndex = lastPostIndex + NUMBER_POSTS;
+    }, 10);
+  });
+}
+
+function init() {
+  getPosts();
+}
+
+init();
