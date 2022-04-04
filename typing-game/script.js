@@ -6,29 +6,45 @@ const scoreEl = document.getElementById('score');
 const timeEl = document.getElementById('time');
 const endGameCont = document.getElementById('end-game-container');
 const selectoEl = document.getElementById('difficulty');
+const settingBtn = document.getElementById('settings-btn');
+const settingEl = document.getElementById('settings');
 
-const values = {
+const dificultyTypes = {
   easy: 15,
   medium: 10,
-  difficult: 5,
+  hard: 5,
 };
 
 let secondsLeft = 10;
 
 let myInterval;
-//let score = 0;
 
 textEl.addEventListener('keyup', checkWord);
+selectoEl.addEventListener('click', changeDifficulty);
+settingBtn.addEventListener('click', () => settingEl.classList.toggle('hide'));
 
 function rightWord() {
   scoreEl.innerText++;
   textEl.value = '';
 
-  startNewGame();
+  startNewGame(selectoEl.value);
 }
 
 function wrongWord() {
   score--;
+}
+function changeDifficulty() {
+  const difValue = selectoEl.value;
+  startNewGame(difValue);
+  storeDifficulty(difValue);
+}
+
+function storeDifficulty(dif) {
+  localStorage.setItem('difficulty', dif);
+}
+function restoreDifficulty() {
+  const dif = localStorage.getItem('difficulty');
+  return dif;
 }
 
 function checkWord(e) {
@@ -49,10 +65,10 @@ function showWord(word) {
   wordToType.innerText = word;
 }
 
-function showLoseMessager() {
+function showLoseMessager(score) {
   const markUpMessage = `
         <h1>Time ran out</h1>
-        <p>Your final score is ${scoreEl.innerText}</p>
+        <p>Your final score is ${score}</p>
         <button onclick="location.reload()">Reload</button>
     `;
 
@@ -60,33 +76,39 @@ function showLoseMessager() {
   endGameCont.style.display = 'flex';
 }
 
-function gameLost() {
-  showLoseMessager();
+function gameLost(score) {
+  showLoseMessager(score);
   clearInterval(myInterval);
 }
 
 function updateTimer() {
   timeEl.innerText = `${secondsLeft}s`;
-  secondsLeft === 0 ? gameLost() : '';
+  secondsLeft === 0 ? gameLost(scoreEl.innerText) : '';
   secondsLeft--;
 }
 
-function resetTimer() {
+function resetTimer(seconds) {
   //console.log();
-  secondsLeft = values[selectoEl.value];
+  secondsLeft = seconds;
   myInterval = setInterval(updateTimer, 1000);
 }
 
-async function startNewGame() {
+async function startNewGame(difficulty = 'medium') {
+  timeEl.innerHTML = `${secondsLeft}s`;
+  selectoEl.value = difficulty;
   clearInterval(myInterval);
-  resetTimer();
+  resetTimer(dificultyTypes[difficulty]);
 
   const word = await getRandomWord();
   showWord(word);
 }
 
 function init() {
-  startNewGame();
+  const dif = restoreDifficulty();
+
+  !dif ? (dif = 'medium') : '';
+
+  startNewGame(dif);
 
   textEl.value = '';
   scoreEl.innerHTML = 0;
